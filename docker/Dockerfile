@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /opt/playbooks
 
-COPY ./ansible/playbook.yml ./playbook.yml
+COPY ../ansible/playbook.yml ./playbook.yml
 
 RUN ansible-playbook playbook.yml
 
