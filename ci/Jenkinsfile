@@ -33,7 +33,7 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        sudo podman build \
+                        docker build \
                           -f docker/Dockerfile \
                           --build-arg NODE_VERSION=22.18.0 \
                           --build-arg JAVA_VERSION=21 \
