@@ -1,0 +1,48 @@
+pipeline {
+    agent {
+        label 'home'
+    }
+
+    stages {
+        stage('Init submodules') {
+            steps {
+                sh '''
+                    git config --global url."https://github.com/".insteadOf "git@github.com:"
+                    git submodule sync --recursive
+                    git submodule update --init --recursive
+                '''
+            }
+        }
+
+        stage('SSH key configuration') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'id_home_lab', keyFileVariable: 'SSH_KEY'),
+                                 sshUserPrivateKey(credentialsId: 'id_home_lab_pub', keyFileVariable: 'SSH_KEY_PUB')]) {
+                    sh '''
+                        mkdir -p /root/.ssh
+                        cp "$SSH_KEY" /root/.ssh/id_home_lab
+                        cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
+                        chmod 600 /root/.ssh/id_home_lab
+                        chmod 600 /root/.ssh/id_home_lab.pub
+                    '''
+                }
+            }
+        }
+
+        stage('Build docker') {
+            steps {
+                script {
+                    sh '''
+                        podman build \
+                          -f docker/Dockerfile \
+                          --build-arg NODE_VERSION=22.18.0 \
+                          --build-arg JAVA_VERSION=21 \
+                          --build-arg GRADLE_VERSION=8.10.2 \
+                          --build-arg PYTHON_VERSION=3.11 \
+                          -t jenkins-agent-lts:latest .
+                    '''
+                }
+            }
+        }
+    }
+}
