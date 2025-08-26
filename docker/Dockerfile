@@ -1,4 +1,3 @@
-# Jenkins agent
 FROM jenkins/inbound-agent:latest as jnlp
 
 FROM ubuntu:22.04-minimal as base
@@ -22,7 +21,16 @@ WORKDIR /opt/playbooks
 
 COPY ../ansible/ .
 
-RUN ansible-playbook playbook.yml
+ARG NODE_VERSION
+ARG JAVA_VERSION
+ARG GRADLE_VERSION
+ARG PYTHON_VERSION
+
+RUN ansible-playbook playbook.yml \
+    -e node_version=${NODE_VERSION} \
+    -e java_version=${JAVA_VERSION} \
+    -e gradle_version=${GRADLE_VERSION} \
+    -e python_version=${PYTHON_VERSION}
 
 WORKDIR /home/jenkins/agent
 
