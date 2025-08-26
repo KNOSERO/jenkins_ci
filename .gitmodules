@@ -1,0 +1,3 @@
+[submodule "ansible/task/ansible_install_terraform"]
+	path = ansible/task/ansible_install_terraform
+	url = git@github.com:KNOSERO/ansible_install_terraform.git
