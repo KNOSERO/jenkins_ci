@@ -1,7 +1,7 @@
 # Jenkins agent
 FROM jenkins/inbound-agent:latest as jnlp
 
-FROM ubuntu:22.04 as base
+FROM ubuntu:22.04-minimal as base
 
 COPY --from=jnlp /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-agent
 COPY --from=jnlp /usr/share/jenkins/agent.jar /usr/share/jenkins/agent.jar
