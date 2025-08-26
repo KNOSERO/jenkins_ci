@@ -15,8 +15,5 @@
     - name: Install Java
       include_tasks: ./task/ansible_install_java/playbook.yml
 
-    - name: Install Podman
-      include_tasks: ./task/ansible_install_podman/playbook.yml
-
     - name: Install Terraform
       include_tasks: ./task/ansible_install_terraform/playbook.yml

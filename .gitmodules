@@ -13,7 +13,3 @@
 [submodule "ansible/task/ansible_install_python"]
 	path = ansible/task/ansible_install_python
 	url = git@github.com:KNOSERO/ansible_install_python.git
-
-[submodule "ansible/task/ansible_install_podman"]
-	path = ansible/task/ansible_install_podman
-	url = git@github.com:KNOSERO/ansible_install_podman.git
