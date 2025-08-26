@@ -1,6 +1,6 @@
-FROM jenkins/inbound-agent:latest as jnlp
+FROM jenkins/inbound-agent:latest AS jnlp
 
-FROM ubuntu:22.04 as base
+FROM ubuntu:22.04 AS base
 
 COPY --from=jnlp /usr/local/bin/jenkins-agent /usr/local/bin/jenkins-agent
 COPY --from=jnlp /usr/share/jenkins/agent.jar /usr/share/jenkins/agent.jar
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /opt/playbooks
 
-COPY ../ansible/ .
+COPY ./ansible/ .
 
 ARG NODE_VERSION
 ARG JAVA_VERSION
