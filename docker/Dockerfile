@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y \
     ansible && \
     rm -rf /var/lib/apt/lists/*
 
+RUN curl -fsSL https://get.docker.com | sh
+
 WORKDIR /opt/playbooks
 COPY ./ansible/ .
 
@@ -32,8 +34,6 @@ RUN ansible-playbook playbook.yml \
     -e java_version=${JAVA_VERSION} \
     -e gradle_version=${GRADLE_VERSION} \
     -e python_version=${PYTHON_VERSION}
-
-RUN curl -fsSL https://get.docker.com | sh
 
 WORKDIR /home/jenkins/agent
 
