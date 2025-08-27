@@ -90,7 +90,6 @@ pipeline {
                                 "${SSH_USER}@home.ravnet" \
                                 NEXUS_DOMAIN="${NEXUS_DOMAIN}" \
                                 NEXUS_USER="${NEXUS_USER}" \
-                                NEXUS_PASS="${NEXUS_PASS}" \
                                 bash
                         """, shell: '/bin/bash')
                     }
