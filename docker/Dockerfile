@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
     ansible && \
     rm -rf /var/lib/apt/lists/*
 
-RUN curl -fsSL https://get.docker.com | sh
+RUN buildkitd --debug &
 
 WORKDIR /opt/playbooks
 COPY ./ansible/ .

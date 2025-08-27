@@ -33,13 +33,16 @@ pipeline {
             steps {
                 script {
                     sh '''
-                        docker build \
-                          -f docker/Dockerfile \
-                          --build-arg NODE_VERSION=22.18.0 \
-                          --build-arg JAVA_VERSION=21 \
-                          --build-arg GRADLE_VERSION=8.10.2 \
-                          --build-arg PYTHON_VERSION=3.11 \
-                          -t jenkins-agent-lts:latest .
+                        buildctl build \
+                          --frontend dockerfile.v0 \
+                          --local context=. \
+                          --local dockerfile=docker \
+                          --opt filename=Dockerfile \
+                          --opt build-arg:NODE_VERSION=22.18.0 \
+                          --opt build-arg:JAVA_VERSION=21 \
+                          --opt build-arg:GRADLE_VERSION=8.10.2 \
+                          --opt build-arg:PYTHON_VERSION=3.11 \
+                          --output type=docker,name=jenkins-agent-lts:latest | docker load
                     '''
                 }
             }
