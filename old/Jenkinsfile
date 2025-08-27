@@ -54,6 +54,7 @@ pipeline {
                                 bash -s <<'REMOTE_SCRIPT'
                             cd ./jenkins
                             sudo docker build \
+                              -f docker/Dockerfile
                               --build-arg NODE_VERSION="$NODE_VERSION" \
                               --build-arg JAVA_VERSION="$JAVA_VERSION" \
                               --build-arg GRADLE_VERSION="$GRADLE_VERSION" \
