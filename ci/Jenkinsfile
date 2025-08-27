@@ -2,6 +2,9 @@ pipeline {
     agent {
         label 'home'
     }
+    environment {
+        DOCKER_BUILDKIT = '1'
+    }
 
     stages {
         stage('Init submodules') {
@@ -36,32 +39,20 @@ pipeline {
             steps {
                 script {
                     withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'SSH_USER')]) {
-                        sh """
-                            echo "[INFO] Copying sources to remote server..."
-                            scp -i /root/.ssh/id_home_lab \
-                                -o IdentitiesOnly=yes \
-                                -o StrictHostKeyChecking=yes \
-                                -r ./* ${SSH_USER}@home.ravnet:jenkins/
-                        """
 
-                        sh(script: """
+                        sh '''
+                            export DOCKER_HOST=tcp://home.ravnet:2375
+
                             echo "[INFO] Building Docker image on remote host..."
-                            echo '
-                                cd ./jenkins
-                                sudo docker build \
-                                    -f docker/Dockerfile \
-                                    --build-arg NODE_VERSION="$NODE_VERSION" \
-                                    --build-arg JAVA_VERSION="$JAVA_VERSION" \
-                                    --build-arg GRADLE_VERSION="$GRADLE_VERSION" \
-                                    --build-arg PYTHON_VERSION="$PYTHON_VERSION" \
-                                    -t jenkins-agent-lts:latest .
-                            ' | ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
-                                NODE_VERSION="${NODE_VERSION}" \
-                                JAVA_VERSION="${JAVA_VERSION}" \
-                                GRADLE_VERSION="${GRADLE_VERSION}" \
-                                PYTHON_VERSION="${PYTHON_VERSION}" \
-                                bash
-                        """, shell: '/bin/bash')
+                            cd ./jenkins
+                            sudo docker build \
+                                -f docker/Dockerfile \
+                                --build-arg NODE_VERSION="${NODE_VERSION}" \
+                                --build-arg JAVA_VERSION="${JAVA_VERSION}" \
+                                --build-arg GRADLE_VERSION="${GRADLE_VERSION}" \
+                                --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
+                                -t jenkins-agent-lts:latest .
+                        '''
                     }
                 }
             }
@@ -75,24 +66,18 @@ pipeline {
                                      string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
+                        sh '''
+                            export DOCKER_HOST=tcp://home.ravnet:2375
 
-                        sh(script: """
-                          echo '
-                            echo \"[INFO] Login into Nexus registry...\"
-                            printf \"%s\" \"$NEXUS_PASS\" | sudo -n docker login -u \"$NEXUS_USER\" --password-stdin \"$NEXUS_DOMAIN\"
+                            echo "[INFO] Login into Nexus registry..."
+                            printf "%s" \"${NEXUS_PASS}" | sudo -n docker login -u "${NEXUS_USER}" --password-stdin "${NEXUS_DOMAIN}"
 
-                            echo \"[INFO] Tag image...\"
-                            sudo -n docker tag jenkins-agent-lts:latest \"$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest\"
+                            echo "[INFO] Tag image..."
+                            sudo -n docker tag jenkins-agent-lts:latest "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest"
 
-                            echo \"[INFO] Push image...\"
-                            sudo -n docker push \"$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest\"
-                          ' | ssh -T -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
-                                "${SSH_USER}@home.ravnet" \
-                                NEXUS_DOMAIN="${NEXUS_DOMAIN}" \
-                                NEXUS_USER="${NEXUS_USER}" \
-                                NEXUS_PASS="${NEXUS_PASS}" \
-                                bash
-                        """, shell: '/bin/bash')
+                            echo "[INFO] Push image..."
+                            sudo -n docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest"
+                        '''
                     }
                 }
             }
