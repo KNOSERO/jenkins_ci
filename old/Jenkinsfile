@@ -36,6 +36,7 @@ pipeline {
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
                         sh """
+                            ssh-keyscan -H home.ravnet >> /root/.ssh
                             echo "[INFO] Copying sources to remote server..."
                             scp -r ./* rav@home.ravnet:~/jenkins/
 
