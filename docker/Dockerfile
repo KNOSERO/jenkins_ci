@@ -16,13 +16,14 @@ RUN apt-get update && apt-get install -y \
     git \
     sudo \
     iptables \
-    ansible && \
-    rm -rf /var/lib/apt/lists/*
+    ansible \
+    uidmap \
+    slirp4netns \
+    fuse-overlayfs \
+    buildah \
+ && rm -rf /var/lib/apt/lists/* \
 
-RUN curl -sSL https://github.com/GoogleContainerTools/kaniko/releases/download/v1.23.2/executor-linux-arm64 \
-      -o /usr/local/bin/kaniko-executor
-
-RUN chmod +x /usr/local/bin/kaniko-executor
+ENV STORAGE_DRIVER=vfs
 
 WORKDIR /opt/playbooks
 COPY ./ansible/ .
