@@ -2,8 +2,8 @@ pipeline {
     agent {
         docker {
             args  '--privileged -e STORAGE_DRIVER=vfs -e BUILDAH_ISOLATION=chroot'
+            label 'home'
         }
-        label 'home'
     }
 
     stages {
