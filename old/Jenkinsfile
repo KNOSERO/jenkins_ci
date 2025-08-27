@@ -34,7 +34,7 @@ pipeline {
         stage('Build docker') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'USER_CLUSTER'),
+                    withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'SSH_USER'),
                                      string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
