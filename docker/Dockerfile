@@ -19,7 +19,10 @@ RUN apt-get update && apt-get install -y \
     ansible && \
     rm -rf /var/lib/apt/lists/*
 
-RUN buildkitd --debug &
+RUN curl -sSL https://github.com/GoogleContainerTools/kaniko/releases/download/v1.23.2/executor-linux-arm64 \
+      -o /usr/local/bin/kaniko-executor
+
+RUN chmod +x /usr/local/bin/kaniko-executor
 
 WORKDIR /opt/playbooks
 COPY ./ansible/ .

@@ -32,18 +32,32 @@ pipeline {
         stage('Build docker') {
             steps {
                 script {
-                    sh '''
-                        buildctl build \
-                          --frontend dockerfile.v0 \
-                          --local context=. \
-                          --local dockerfile=docker \
-                          --opt filename=Dockerfile \
-                          --opt build-arg:NODE_VERSION=22.18.0 \
-                          --opt build-arg:JAVA_VERSION=21 \
-                          --opt build-arg:GRADLE_VERSION=8.10.2 \
-                          --opt build-arg:PYTHON_VERSION=3.11 \
-                          --output type=docker,name=jenkins-agent-lts:latest | docker load
-                    '''
+                    withCredentials([string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
+                                     string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
+                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
+                        sh '''
+                            mkdir -p $HOME/.docker
+                            cat > $HOME/.docker/config.json <<EOF
+                            {
+                                "auths": {
+                                    "${NEXUS_DOMAIN}": {
+                                        "username": "${NEXUS_USER}",
+                                        "password": "${NEXUS_USER}"
+                                    }
+                                }
+                            }
+                            EOF
+
+                            kaniko-executor \
+                              --dockerfile docker/Dockerfile \
+                              --context . \
+                              --destination ${NEXUS_DOMAIN}/jenkins-agent-lts:latest \
+                              --build-arg NODE_VERSION=22.18.0 \
+                              --build-arg JAVA_VERSION=21 \
+                              --build-arg GRADLE_VERSION=8.10.2 \
+                              --build-arg PYTHON_VERSION=3.11
+                        '''
+                    }
                 }
             }
         }
