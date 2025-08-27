@@ -34,8 +34,11 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
-                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
+                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')
+                    ]) {
+
                         sh '''
+                            echo "[INFO] Generating Docker config.json for Kaniko"
                             mkdir -p $HOME/.docker
                             cat > $HOME/.docker/config.json <<EOF
                             {
@@ -47,6 +50,9 @@ pipeline {
                                 }
                             }
                             EOF
+
+                            echo "[INFO] Running Kaniko build..."
+                            which kaniko-executor || echo "[ERROR] kaniko-executor not found in PATH!"
 
                             kaniko-executor \
                               --dockerfile docker/Dockerfile \
