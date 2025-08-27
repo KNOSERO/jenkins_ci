@@ -24,6 +24,8 @@ pipeline {
                         cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
                         chmod 600 /root/.ssh/id_home_lab
                         chmod 600 /root/.ssh/id_home_lab.pub
+
+
                     '''
                 }
             }
@@ -36,25 +38,27 @@ pipeline {
                                      string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
+
                         sh """
+                            ssh-keyscan -H "home.ravnet" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+                            chmod 600 "$HOME/.ssh/known_hosts"
+
                             echo "[INFO] Copying sources to remote server..."
-                            scp -r ./* rav@home.ravnet:~/jenkins/
-                            scp -i "/root/.ssh/id_home_lab" \
-                                -o IdentitiesOnly=yes \
-                                -o StrictHostKeyChecking=yes \
-                                -o UserKnownHostsFile="/root/.ssh/known_hosts" \
-                                -r ./* "${USER_CLUSTER}@home.ravnet:~/jenkins/"
+                            rsync -az --delete \
+                                -e "ssh -i /root/.ssh/id_home_lab -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
+                                ./ "${SSH_USER}@home.ravnet:~/jenkins/
 
                             echo "[INFO] Building Docker image on remote host..."
-                            ssh rav@home.ravnet '
-                                cd ~/jenkins && \
+                            ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" bash -lc '
+                                set -euo pipefail
+                                cd '"~/jenkins"'
                                 docker build \
-                                  --build-arg NODE_VERSION=${NODE_VERSION} \
-                                  --build-arg JAVA_VERSION=${JAVA_VERSION} \
-                                  --build-arg GRADLE_VERSION=${GRADLE_VERSION} \
-                                  --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
-                                  -t jenkins-agent-lts:latest .
-                            '
+                                    --build-arg NODE_VERSION='"${NODE_VERSION}"' \
+                                    --build-arg JAVA_VERSION='"${JAVA_VERSION}"' \
+                                    --build-arg GRADLE_VERSION='"${GRADLE_VERSION}"' \
+                                    --build-arg PYTHON_VERSION='"${PYTHON_VERSION}"' \
+                                    -t jenkins-agent-lts:latest .
+                                '
 
                             echo "[INFO] Logging into Nexus and pushing image..."
                             ssh rav@home.ravnet '
