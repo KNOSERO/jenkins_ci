@@ -61,9 +61,10 @@ pipeline {
                                 '
 
                             echo "[INFO] Logging into Nexus and pushing image..."
-                            ssh rav@home.ravnet '
-                                docker login -u "${NEXUS_USER}" -p "${NEXUS_PASS}" ${NEXUS_DOMAIN} && \
-                                docker tag jenkins-agent-lts:latest ${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest && \
+                            ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" bash -lc '
+                                set -euo pipefail
+                                docker login -u "${NEXUS_USER}" -p "${NEXUS_PASS}" ${NEXUS_DOMAIN}
+                                docker tag jenkins-agent-lts:latest ${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest
                                 docker push ${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest
                             '
                         """
