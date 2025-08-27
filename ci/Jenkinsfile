@@ -50,7 +50,7 @@ pipeline {
                                 --build-arg JAVA_VERSION="${JAVA_VERSION}" \
                                 --build-arg GRADLE_VERSION="${GRADLE_VERSION}" \
                                 --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
-                                -t jenkins-agent-lts:${VERSION} .
+                                -t jenkins-agent-lts:${TAG} .
                         '''
                     }
                 }
@@ -72,10 +72,10 @@ pipeline {
                             printf "%s" \"${NEXUS_PASS}" | docker login -u "${NEXUS_USER}" --password-stdin "${NEXUS_DOMAIN}"
 
                             echo "[INFO] Tag image..."
-                            docker tag jenkins-agent-lts:${params.VERSION} "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${VERSION}"
+                            docker tag jenkins-agent-lts:${TAG} "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${TAG}"
 
                             echo "[INFO] Push image..."
-                            docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${VERSION}"
+                            docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${TAG}"
                         '''
                     }
                 }
