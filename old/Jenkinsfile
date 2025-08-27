@@ -46,21 +46,21 @@ pipeline {
 
                         sh(script: """
                             echo "[INFO] Building Docker image on remote host..."
-                            ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
+                            echo '
+                                cd ./jenkins
+                                sudo docker build \
+                                    -f docker/Dockerfile \
+                                    --build-arg NODE_VERSION="$NODE_VERSION" \
+                                    --build-arg JAVA_VERSION="$JAVA_VERSION" \
+                                    --build-arg GRADLE_VERSION="$GRADLE_VERSION" \
+                                    --build-arg PYTHON_VERSION="$PYTHON_VERSION" \
+                                    -t jenkins-agent-lts:latest .
+                            ' | ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
                                 NODE_VERSION="${NODE_VERSION}" \
                                 JAVA_VERSION="${JAVA_VERSION}" \
                                 GRADLE_VERSION="${GRADLE_VERSION}" \
                                 PYTHON_VERSION="${PYTHON_VERSION}" \
-                                bash -s <<'REMOTE_SCRIPT'
-                            cd ./jenkins
-                            sudo docker build \
-                              -f docker/Dockerfile \
-                              --build-arg NODE_VERSION="$NODE_VERSION" \
-                              --build-arg JAVA_VERSION="$JAVA_VERSION" \
-                              --build-arg GRADLE_VERSION="$GRADLE_VERSION" \
-                              --build-arg PYTHON_VERSION="$PYTHON_VERSION" \
-                              -t jenkins-agent-lts:latest .
-                            REMOTE_SCRIPT
+                                bash
                         """, shell: '/bin/bash')
                     }
                 }
@@ -77,15 +77,16 @@ pipeline {
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
 
                         sh(script: """
-                            ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
+                            echo '
+                                set -Eeuo pipefail
+                                printf "%s" "$NEXUS_PASS" | sudo -n docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOMAIN"
+                                sudo -n docker tag jenkins-agent-lts:latest "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
+                                sudo -n docker push "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
+                            ' | ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
                                 NEXUS_DOMAIN="${NEXUS_DOMAIN}" \
                                 NEXUS_USER="${NEXUS_USER}" \
                                 NEXUS_PASS="${NEXUS_PASS}" \
-                                bash -s <<'REMOTE_SCRIPT'
-                            printf "%s" "$NEXUS_PASS" | sudo docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOMAIN"
-                            sudo docker tag jenkins-agent-lts:latest "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
-                            sudo  docker push "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
-                            REMOTE_SCRIPT
+                                bash
                         """, shell: '/bin/bash')
                     }
                 }
