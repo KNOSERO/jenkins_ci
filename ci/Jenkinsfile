@@ -34,8 +34,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
-                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')
-                    ]) {
+                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
                         sh '''
                             echo "[INFO] Login into Nexus registry..."
                             buildah login -u "${NEXUS_USER}" -p "${NEXUS_PASS}" "${NEXUS_DOMAIN}"

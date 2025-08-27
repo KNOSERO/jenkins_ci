@@ -1,0 +1,65 @@
+pipeline {
+    agent {
+        label 'home'
+    }
+
+    stages {
+        stage('Init submodules') {
+            steps {
+                sh '''
+                    git config --global url."https://github.com/".insteadOf "git@github.com:"
+                    git submodule sync --recursive
+                    git submodule update --init --recursive
+                '''
+            }
+        }
+
+        stage('SSH key configuration') {
+            steps {
+                withCredentials([sshUserPrivateKey(credentialsId: 'id_home_lab', keyFileVariable: 'SSH_KEY'),
+                                 sshUserPrivateKey(credentialsId: 'id_home_lab_pub', keyFileVariable: 'SSH_KEY_PUB')]) {
+                    sh '''
+                        mkdir -p /root/.ssh
+                        cp "$SSH_KEY" /root/.ssh/id_home_lab
+                        cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
+                        chmod 600 /root/.ssh/id_home_lab
+                        chmod 600 /root/.ssh/id_home_lab.pub
+                    '''
+                }
+            }
+        }
+
+        stage('Build docker') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
+                                     string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
+                                     string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
+                        sh """
+                            echo "[INFO] Copying sources to remote server..."
+                            scp -r ./* rav@home.ravnet:~/jenkins/
+
+                            echo "[INFO] Building Docker image on remote host..."
+                            ssh rav@home.ravnet '
+                                cd ~/jenkins && \
+                                docker build \
+                                  --build-arg NODE_VERSION=${NODE_VERSION} \
+                                  --build-arg JAVA_VERSION=${JAVA_VERSION} \
+                                  --build-arg GRADLE_VERSION=${GRADLE_VERSION} \
+                                  --build-arg PYTHON_VERSION=${PYTHON_VERSION} \
+                                  -t jenkins-agent-lts:latest .
+                            '
+
+                            echo "[INFO] Logging into Nexus and pushing image..."
+                            ssh rav@home.ravnet '
+                                docker login -u "${NEXUS_USER}" -p "${NEXUS_PASS}" ${NEXUS_DOMAIN} && \
+                                docker tag jenkins-agent-lts:latest ${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest && \
+                                docker push ${NEXUS_DOMAIN}/docker/jenkins-agent-lts:latest
+                            '
+                        """
+                    }
+                }
+            }
+        }
+    }
+}
