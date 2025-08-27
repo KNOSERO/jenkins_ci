@@ -44,7 +44,6 @@ pipeline {
                             export DOCKER_HOST=tcp://home.ravnet:2375
 
                             echo "[INFO] Building Docker image on remote host..."
-                            cd ./jenkins
                             docker build \
                                 -f docker/Dockerfile \
                                 --build-arg NODE_VERSION="${NODE_VERSION}" \
