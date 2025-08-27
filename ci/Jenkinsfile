@@ -38,7 +38,7 @@ pipeline {
                     ]) {
 
                         sh '''
-                            echo "[INFO] Login to registry nexus"
+                            echo "[INFO] Login into Nexus registry..."
                             buildah login -u "${NEXUS_USER}" -p "${NEXUS_PASS}" "${NEXUS_DOMAIN}"
 
                             echo "[INFO] Running Buildah build..."
