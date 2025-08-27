@@ -44,7 +44,7 @@ pipeline {
                                 -r ./* ${SSH_USER}@home.ravnet:jenkins/
                         """
 
-                        sh """
+                        sh(script: """
                             echo "[INFO] Building Docker image on remote host..."
                             ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
                                 NODE_VERSION="${NODE_VERSION}" \
@@ -61,7 +61,7 @@ pipeline {
                               --build-arg PYTHON_VERSION="$PYTHON_VERSION" \
                               -t jenkins-agent-lts:latest .
                             REMOTE_SCRIPT
-                        """
+                        """, shell: '/bin/bash')
                     }
                 }
             }
@@ -76,7 +76,7 @@ pipeline {
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
 
-                        sh """
+                        sh(script: """
                             ssh -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes "${SSH_USER}@home.ravnet" \
                                 NEXUS_DOMAIN="${NEXUS_DOMAIN}" \
                                 NEXUS_USER="${NEXUS_USER}" \
@@ -86,7 +86,7 @@ pipeline {
                             sudo docker tag jenkins-agent-lts:latest "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
                             sudo  docker push "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
                             REMOTE_SCRIPT
-                        """
+                        """, shell: '/bin/bash')
                     }
                 }
             }
