@@ -4,7 +4,7 @@ Configuration for creating an image for CI in Jenkins
 ## How To Run
 The configuration requires parameterized variables for the image tag and the versions of Java, Gradle, Python, and Node.
 
-![example](./assets/example.png)
+
 
 ## Open api without tls
 
