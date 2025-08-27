@@ -40,16 +40,7 @@ pipeline {
                         sh '''
                             echo "[INFO] Generating Docker config.json for Kaniko"
                             mkdir -p $HOME/.docker
-                            cat > $HOME/.docker/config.json <<EOF
-                            {
-                                "auths": {
-                                    "${NEXUS_DOMAIN}": {
-                                        "username": "${NEXUS_USER}",
-                                        "password": "${NEXUS_USER}"
-                                    }
-                                }
-                            }
-                            EOF
+                            echo "{\"auths\":{\"$REGISTRY\":{\"auth\":\"$(echo -n $NEXUS_USER:$NEXUS_PASS | base64)\"}}}" > $HOME/.docker/config.json
 
                             echo "[INFO] Running Kaniko build..."
                             which kaniko-executor || echo "[ERROR] kaniko-executor not found in PATH!"
