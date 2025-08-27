@@ -92,7 +92,7 @@ pipeline {
                                 NEXUS_USER="${NEXUS_USER}" \
                                 NEXUS_PASS="${NEXUS_PASS}" \
                                 bash
-                        """)
+                        """, shell: '/bin/bash')
                     }
                 }
             }
