@@ -1,6 +1,7 @@
 pipeline {
     agent {
         docker {
+            image 'docker.nexus.ravcube.com/docker/jenkins-agent-lts:latest'
             args  '--privileged -e STORAGE_DRIVER=vfs -e BUILDAH_ISOLATION=chroot'
             label 'home'
         }
