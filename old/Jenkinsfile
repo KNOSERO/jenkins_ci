@@ -32,13 +32,18 @@ pipeline {
         stage('Build docker') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
+                    withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'USER_CLUSTER'),
+                                     string(credentialsId: 'nexus_domain', variable: 'NEXUS_DOMAIN'),
                                      string(credentialsId: 'nexus_user', variable: 'NEXUS_USER'),
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
                         sh """
-                            ssh-keyscan -H home.ravnet >> /root/.ssh
                             echo "[INFO] Copying sources to remote server..."
                             scp -r ./* rav@home.ravnet:~/jenkins/
+                            scp -i "/root/.ssh/id_home_lab" \
+                                -o IdentitiesOnly=yes \
+                                -o StrictHostKeyChecking=yes \
+                                -o UserKnownHostsFile="/root/.ssh/known_hosts" \
+                                -r ./* "${USER_CLUSTER}@home.ravnet:~/jenkins/"
 
                             echo "[INFO] Building Docker image on remote host..."
                             ssh rav@home.ravnet '
