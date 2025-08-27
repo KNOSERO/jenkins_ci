@@ -72,7 +72,7 @@ pipeline {
                             printf "%s" \"${NEXUS_PASS}" | docker login -u "${NEXUS_USER}" --password-stdin "${NEXUS_DOMAIN}"
 
                             echo "[INFO] Tag image..."
-                            docker tag jenkins-agent-lts:${params.VERSION} "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${params.VERSION}"
+                            docker tag jenkins-agent-lts:${params.VERSION} "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${VERSION}"
 
                             echo "[INFO] Push image..."
                             docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${VERSION}"
