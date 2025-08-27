@@ -53,7 +53,7 @@ pipeline {
                                 PYTHON_VERSION="${PYTHON_VERSION}" \
                                 bash -s <<'REMOTE_SCRIPT'
                             cd "./jenkins"
-                            docker build \
+                            sudo docker build \
                               --build-arg NODE_VERSION="$NODE_VERSION" \
                               --build-arg JAVA_VERSION="$JAVA_VERSION" \
                               --build-arg GRADLE_VERSION="$GRADLE_VERSION" \
@@ -82,9 +82,9 @@ pipeline {
                                 NEXUS_PASS="${NEXUS_PASS}" \
                                 bash -s <<'REMOTE_SCRIPT'
                             set -euo pipefail
-                            printf "%s" "$NEXUS_PASS" | docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOMAIN"
-                            docker tag jenkins-agent-lts:latest "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
-                            docker push "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
+                            printf "%s" "$NEXUS_PASS" | sudo docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOMAIN"
+                            sudo docker tag jenkins-agent-lts:latest "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
+                            sudo  docker push "$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest"
                             REMOTE_SCRIPT
                         """
                     }
