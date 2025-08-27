@@ -77,7 +77,7 @@ pipeline {
                                      string(credentialsId: 'nexus_pass', variable: 'NEXUS_PASS')]) {
 
                         sh(script: """
-                          echo \"
+                          echo '
                             echo \"[INFO] Login into Nexus registry...\"
                             printf \"%s\" \"$NEXUS_PASS\" | sudo -n docker login -u \"$NEXUS_USER\" --password-stdin \"$NEXUS_DOMAIN\"
 
@@ -86,7 +86,7 @@ pipeline {
 
                             echo \"[INFO] Push image...\"
                             sudo -n docker push \"$NEXUS_DOMAIN/docker/jenkins-agent-lts:latest\"
-                          \" | ssh -T -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+                          ' | ssh -T -i "/root/.ssh/id_home_lab" -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
                                 "${SSH_USER}@home.ravnet" \
                                 NEXUS_DOMAIN="${NEXUS_DOMAIN}" \
                                 NEXUS_USER="${NEXUS_USER}" \
