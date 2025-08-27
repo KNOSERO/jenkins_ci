@@ -38,9 +38,10 @@ pipeline {
                     withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'SSH_USER')]) {
                         sh """
                             echo "[INFO] Copying sources to remote server..."
-                                rsync -az --delete \
-                                    -e "ssh -i /root/.ssh/id_home_lab -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes" \
-                                    ./ "${SSH_USER}@home.ravnet:~/jenkins/"
+                            scp -i /root/.ssh/id_home_lab \
+                                -o IdentitiesOnly=yes \
+                                -o StrictHostKeyChecking=yes \
+                                -r ./* ${SSH_USER}@home.ravnet:jenkins/
                         """
 
                         sh """
