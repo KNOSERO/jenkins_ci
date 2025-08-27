@@ -46,11 +46,11 @@ pipeline {
                             echo "[INFO] Building Docker image on remote host..."
                             docker build \
                                 -f docker/Dockerfile \
-                                --build-arg NODE_VERSION="${params.NODE_VERSION}" \
-                                --build-arg JAVA_VERSION="${params.JAVA_VERSION}" \
-                                --build-arg GRADLE_VERSION="${params.GRADLE_VERSION}" \
-                                --build-arg PYTHON_VERSION="${params.PYTHON_VERSION}" \
-                                -t jenkins-agent-lts:${params.VERSION} .
+                                --build-arg NODE_VERSION="${NODE_VERSION}" \
+                                --build-arg JAVA_VERSION="${JAVA_VERSION}" \
+                                --build-arg GRADLE_VERSION="${GRADLE_VERSION}" \
+                                --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
+                                -t jenkins-agent-lts:${VERSION} .
                         '''
                     }
                 }
@@ -75,7 +75,7 @@ pipeline {
                             docker tag jenkins-agent-lts:${params.VERSION} "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${params.VERSION}"
 
                             echo "[INFO] Push image..."
-                            docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${params.VERSION}"
+                            docker push "${NEXUS_DOMAIN}/docker/jenkins-agent-lts:${VERSION}"
                         '''
                     }
                 }
