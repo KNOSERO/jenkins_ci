@@ -1,36 +1,40 @@
 pipeline {
     agent {
-        label 'home'
+        label 'k3s'
     }
     environment {
         DOCKER_BUILDKIT = '1'
     }
 
     stages {
-        stage('Init submodules') {
-            steps {
-                sh '''
-                    git config --global url."https://github.com/".insteadOf "git@github.com:"
-                    git submodule sync --recursive
-                    git submodule update --init --recursive
-                '''
-            }
-        }
+        stage('Init') {
+            parallel {
+                stage('Init submodules') {
+                    steps {
+                        sh '''
+                            git config --global url."https://github.com/".insteadOf "git@github.com:"
+                            git submodule sync --recursive
+                            git submodule update --init --recursive --remote
+                        '''
+                    }
+                }
 
-        stage('SSH key configuration') {
-            steps {
-                withCredentials([sshUserPrivateKey(credentialsId: 'id_home_lab', keyFileVariable: 'SSH_KEY'),
-                                 sshUserPrivateKey(credentialsId: 'id_home_lab_pub', keyFileVariable: 'SSH_KEY_PUB')]) {
-                    sh '''
-                        mkdir -p /root/.ssh
-                        cp "$SSH_KEY" /root/.ssh/id_home_lab
-                        cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
-                        chmod 600 /root/.ssh/id_home_lab
-                        chmod 600 /root/.ssh/id_home_lab.pub
+                stage('SSH key configuration') {
+                    steps {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'id_home_lab', keyFileVariable: 'SSH_KEY'),
+                                         sshUserPrivateKey(credentialsId: 'id_home_lab_pub', keyFileVariable: 'SSH_KEY_PUB')]) {
+                            sh '''
+                                mkdir -p /root/.ssh
+                                cp "$SSH_KEY" /root/.ssh/id_home_lab
+                                cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
+                                chmod 600 /root/.ssh/id_home_lab
+                                chmod 600 /root/.ssh/id_home_lab.pub
 
-                        ssh-keyscan -H "home.ravnet" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
-                        chmod 600 "$HOME/.ssh/known_hosts"
-                    '''
+                                ssh-keyscan -H "home.ravnet" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+                                chmod 600 "$HOME/.ssh/known_hosts"
+                            '''
+                        }
+                    }
                 }
             }
         }
