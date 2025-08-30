@@ -2,11 +2,39 @@ pipeline {
     agent {
         label 'k3s'
     }
+    options {
+        skipDefaultCheckout();
+        timestamps();
+        ansiColor('xterm')
+    }
     environment {
+        REPO_URL = 'https://github.com/KNOSERO/jenkins_ci.git'
+        CREDITS_ID = 'github-token'
+        ACCOUNT = 'KNOSERO'
+        REPO = 'jenkins_ci'
         DOCKER_BUILDKIT = '1'
     }
 
     stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    userRemoteConfigs: [[
+                        name: 'origin',
+                        url: env.REPO_URL,
+                        credentialsId: env.CREDITS_ID,
+                        refspec: '+refs/heads/*:refs/remotes/origin/*'
+                    ]],
+                    branches: [[ name: "${env.BRANCH}" ]],
+                    extensions: [
+                        [$class: 'CloneOption', shallow: true, depth: 25, noTags: true, timeout: 240],
+                        [$class: 'PruneStaleBranch'],
+                        [$class: 'CleanBeforeCheckout']
+                    ]
+                ])
+            }
+        }
+
         stage('Init') {
             parallel {
                 stage('Init submodules') {
