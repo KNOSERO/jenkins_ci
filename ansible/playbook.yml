@@ -1,7 +1,7 @@
 ---
 - name: Install Dependency
   hosts: localhost
-  become: yes
+  become: true
   vars:
     arch_type: "arm64"
 
