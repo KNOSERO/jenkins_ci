@@ -17,3 +17,6 @@
 
     - name: Install Terraform
       include_tasks: ./task/ansible_install_terraform/playbook.yml
+
+    - name: Install Helm
+      include_tasks: ./task/ansible_install_helm/playbook.yml
