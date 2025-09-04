@@ -1,0 +1,92 @@
+pipeline {
+    agent {
+        label 'k3s'
+    }
+    options {
+        skipDefaultCheckout();
+        timestamps();
+        ansiColor('xterm')
+    }
+    environment {
+        REPO_URL = 'https://github.com/KNOSERO/jenkins_ci.git'
+        CREDITS_ID = 'github-token'
+        ACCOUNT = 'KNOSERO'
+        REPO = 'jenkins_ci'
+        DOCKER_BUILDKIT = '1'
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                checkout([$class: 'GitSCM',
+                    userRemoteConfigs: [[
+                        name: 'origin',
+                        url: env.REPO_URL,
+                        credentialsId: env.CREDITS_ID,
+                        refspec: '+refs/heads/*:refs/remotes/origin/*'
+                    ]],
+                    branches: [[ name: "${env.BRANCH}" ]],
+                    extensions: [
+                        [$class: 'CloneOption', shallow: true, depth: 25, noTags: true, timeout: 240],
+                        [$class: 'PruneStaleBranch'],
+                        [$class: 'CleanBeforeCheckout']
+                    ]
+                ])
+            }
+        }
+
+        stage('Init') {
+            parallel {
+                stage('Init submodules') {
+                    steps {
+                        sh '''
+                            git config --global url."https://github.com/".insteadOf "git@github.com:"
+                            git submodule sync --recursive
+                            git submodule update --init --recursive --remote
+                        '''
+                    }
+                }
+
+                stage('SSH key configuration') {
+                    steps {
+                        withCredentials([sshUserPrivateKey(credentialsId: 'id_home_lab', keyFileVariable: 'SSH_KEY'),
+                                         sshUserPrivateKey(credentialsId: 'id_home_lab_pub', keyFileVariable: 'SSH_KEY_PUB')]) {
+                            sh '''
+                                mkdir -p /root/.ssh
+                                cp "$SSH_KEY" /root/.ssh/id_home_lab
+                                cp "$SSH_KEY_PUB" /root/.ssh/id_home_lab.pub
+                                chmod 600 /root/.ssh/id_home_lab
+                                chmod 600 /root/.ssh/id_home_lab.pub
+
+                                ssh-keyscan -H "home.ravnet" >> "$HOME/.ssh/known_hosts" 2>/dev/null || true
+                                chmod 600 "$HOME/.ssh/known_hosts"
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Build docker') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'user-cluster-k3s', variable: 'SSH_USER')]) {
+
+                        sh '''
+                            export DOCKER_HOST=tcp://home.ravnet:2375
+
+                            echo "[INFO] Building Docker image on remote host..."
+                            docker build \
+                                -f docker/Dockerfile \
+                                --build-arg NODE_VERSION="${NODE_VERSION}" \
+                                --build-arg JAVA_VERSION="${JAVA_VERSION}" \
+                                --build-arg GRADLE_VERSION="${GRADLE_VERSION}" \
+                                --build-arg PYTHON_VERSION="${PYTHON_VERSION}" \
+                                -t jenkins-agent-lts:${TAG} .
+                        '''
+                    }
+                }
+            }
+        }
+    }
+}
